@@ -20,7 +20,15 @@ function Layout(TB, A) {
 			}
 		}
 	}
-	function _indexOf(array, value) {
+
+	var stems = _new_arr_with_v(transitionTable.length, -1);
+	var levels = _new_arr_with_v(transitionTable.length, -1);
+
+	var level = 0;
+	stems[0] = [0];
+	levels[0] = 0;
+
+	function _indexsOf(array, value) {
 		let indexes = [];
 		array.forEach((e, i) => {
 			if (value === e) indexes.push(i);
@@ -28,80 +36,153 @@ function Layout(TB, A) {
 		if (indexes.length === 0) return -1;
 		else return indexes;
 	}
-	// var nodes = _range(transitionTable.length);
-	var stems = _new_arr_with_v(transitionTable.length, -1);
-	var levels = _new_arr_with_v(transitionTable.length, -1);
 
-	var level = 0;
-	stems[0] = 0;
-	levels[0] = 0;
+	function _indexsOf_2(arrayOfarray, value) {
+		let indexes = [];
+		//console.log(arrayOfarray);
+		arrayOfarray.forEach((arr, i) => {
+			if (arr === -1) return;
+			if (arr.indexOf(value) != -1) indexes.push(i);
+		});
+		if (indexes.length === 0) return -1;
+		else return indexes;
+	}
 
-	while (true) {
-		let isDone = true;
+	function traceback(node) {
+		//  从 0 到达 node 走过的轨迹
+		let trace = [node];
+		if (node === 0) return trace;
+		let preNode = stems[node][0];
+		trace.unshift(preNode);
+		while (preNode != 0) {
+			preNode = stems[preNode][0];
+			trace.unshift(preNode);
+		}
+		// trace.unshift(0);
+		return trace;
+	}
 
-		for (let node of _indexOf(levles, levle)) {
+	function isStemOf(node1, node2) {
+		// 判断在遍历图走到 node1 的路上是否经过 node2
+		trace_node1 = traceback(node1);
+		if (trace_node1.indexOf(node2) === -1) return false;
+		else return true;
+	}
+
+	function resetLevelsOf(nodes) {
+		// 更新 nodes 中所有 node 的 levels， 以及所有 node 后面的点的 levels
+		if (typeof nodes === 'number') nodes = [nodes];
+		let nextNodes = new Set();
+		for (let node of nodes) {
+			levels[node] = levelOf(node);
+			if (_indexsOf_2(stems, node) != -1) _indexsOf_2(stems, node).forEach(e => nextNodes.add(e));
+		}
+		if (nextNodes.size != 0) resetLevelsOf([...nextNodes]);
+	}
+
+	function levelOf(node) {
+		let preNodes = stems[node];
+		let max = 0;
+		preNodes.forEach(e => {
+			if (levels[e] > max) max = levels[e];
+		})
+		return max + 1;
+	}
+
+	function isTraceCover(trace_newone, trace_existone) {
+		// 判断 trace_newone 是否 覆盖 trace_existone
+		// 是的话就说明 trace_existone 是 trace_newone 的一条捷径
+		let isCover = true;
+		for (let node of trace_existone) {
+			if (trace_newone.indexOf(node) === -1) {
+				isCover = false;
+				break;
+			}
+		}
+		return isCover;
+	}
+
+	while (level < stems.length - 1) {
+		let currentLevel = _indexsOf(levels, level);
+		for (let node of currentLevel) {
 			let nextNodes = nodesInfo.get(node).nextNodes;
 			for (let nextNode of nextNodes) {
-				if (levles[nextNode] === -1) {
+				if (levels[nextNode] === -1) {
 					// 第一次遇到 node
 					stems[nextNode] = [node];
 					levels[nextNode] = levels[node] + 1;
 				} else {
 					// nextNode 已经在某个 level 中
+					// 这是 nextNode 的 stems 是有东西的
 					if (stems[nextNode].indexOf(node) != -1) {
 						// 之前 nextNode 的前置设置正确， 不用做更改
 					} else if (isStemOf(node, nextNode)) {
 						// 返回边，不理
 					} else {
-						let trace_existone = traceback(nextNode);
-						let trace_newone = traceback(node);
-						trace_newone.push(nextNode);
-						///
 						if (stems[nextNode].length > 1) {
 							// 似乎可以肯定 nextNode 是一个并点
-						} else
-							if (isCover(trace_newone, trace_existone)) {
+							stems[nextNode].push(node);
+							resetLevelsOf(node);
+						} else {
+							// 目前不确定 nextNode 是不是一个并点
+							let trace_existone = traceback(nextNode);
+							let trace_newone = traceback(node);
+							trace_newone.push(nextNode);
+							///
+							if (isTraceCover(trace_newone, trace_existone)) {
 								// nextNode 存在，但是之前设置的 stem 是错的，正解为 node
-								stems[nextNode] = node;
+								stems[nextNode] = [node];
 								// 把所有受影响的 node 的 levels 改正确
 								// 注意后面的节点的排序目前认为是正确的，故只需要遍历一下改正 level 就 ok 
-								let i = nextNode;
-								while (i != -1) {
-									//levels[i] = levels[stems[i]] + 1;
-									//i = stems.indexOf(i);
-								}
+								resetLevelsOf(nextNode);
 							} else {
-								// nextNode 存在，
+								// nextNode 是一个并点
+								stems[nextNode].push(node);
+								resetLevelsOf(nextNode);
 							}
+						}
 					}
 				}
 			}
 		}
 
 		level++;
-		if (isDone) break;
+		// console.log(level);
 	}
 
 
 
-	console.log(nodes, stems, levels);
+	// console.log(stems, levels);
 
-	return;
+	var graph = [];
+	var l = 0;
+	while (true) {
+
+		let a_level = _indexsOf(levels, l);
+		if (a_level === -1) {
+			break;
+		} else {
+			graph.push(a_level);
+			l++;
+		}
+		
+	}
+
+	return graph;
 }
 
 
-
-// (a*b)*c
+// a|(b|c)
 var transitionTable = [
-	[[1, 7], [], [], []],//0
-	[[2, 4], [], [], []],//1
-	[[], [3], [], []],//2
-	[[2, 4], [], [], []],//3
-	[[5], [], [], []],//4
-	[[], [], [6], []],//5
-	[[1, 7], [], [], []],//6
+	[[1, 3], [], [], []],//0
+	[[], [2], [], []],//1
+	[[9], [], [], []],//2
+	[[4, 6], [], [], []],//3
+	[[], [], [5], []],//4
+	[[8], [], [], []],//5
+	[[], [], [], [7]],//6
 	[[8], [], [], []],//7
-	[[], [], [], [9]],//8
+	[[9], [], [], []],//8
 	[[], [], [], []]//9
 ];
 var alphabet = ['ε', 'a', 'b', 'c'];
