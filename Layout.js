@@ -24,7 +24,7 @@ function Layout(TB, A) {
 	var stems = _new_arr_with_v(transitionTable.length, -1);
 	var levels = _new_arr_with_v(transitionTable.length, -1);
 
-	var level = 0;
+	var level = -1;
 	stems[0] = [0];
 	levels[0] = 0;
 
@@ -102,8 +102,9 @@ function Layout(TB, A) {
 		return isCover;
 	}
 
-	while (level < stems.length - 1) {
+	while (++level < stems.length) {
 		let currentLevel = _indexsOf(levels, level);
+		if (currentLevel === -1) break;
 		for (let node of currentLevel) {
 			let nextNodes = nodesInfo.get(node).nextNodes;
 			for (let nextNode of nextNodes) {
@@ -145,47 +146,35 @@ function Layout(TB, A) {
 				}
 			}
 		}
-
-		level++;
-		// console.log(level);
 	}
-
-
-
-	// console.log(stems, levels);
 
 	var graph = [];
 	var l = 0;
-	while (true) {
-
-		let a_level = _indexsOf(levels, l);
-		if (a_level === -1) {
-			break;
-		} else {
-			graph.push(a_level);
-			l++;
-		}
-		
-	}
+	while (l<level) graph.push(_indexsOf(levels, l++));
 
 	return graph;
 }
 
 
-// a|(b|c)
+// a*|b*c|d
 var transitionTable = [
-	[[1, 3], [], [], []],//0
-	[[], [2], [], []],//1
-	[[9], [], [], []],//2
-	[[4, 6], [], [], []],//3
-	[[], [], [5], []],//4
-	[[8], [], [], []],//5
-	[[], [], [], [7]],//6
-	[[8], [], [], []],//7
-	[[9], [], [], []],//8
-	[[], [], [], []]//9
+	[[1, 5, 11], [], [], [], []],//0
+	[[2, 4], [], [], [], []],//1
+	[[], [3], [], [], []],//2
+	[[2, 4], [], [], [], []],//3
+	[[13], [], [], [], []],//4
+	[[6, 8], [], [], [], []],//5
+	[[], [], [7], [], []],//6
+	[[6, 8], [], [], [], []],//7
+	[[9], [], [], [], []],//8
+	[[], [], [], [10], []],//9
+	[[13], [], [], [], []],//10
+	[[], [], [], [], [12]],//11
+	[[13], [], [], [], []],//12
+	[[], [], [], [], []]//13
 ];
-var alphabet = ['ε', 'a', 'b', 'c'];
+var alphabet = ['ε', 'a', 'b', 'c', 'd'];
+
 
 
 var graph = Layout(transitionTable, alphabet)
