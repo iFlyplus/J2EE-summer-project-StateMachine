@@ -21,6 +21,7 @@ function Layout(TB, A) {
 		}
 	}
 
+
 	var stems = _new_arr_with_v(transitionTable.length, -1);
 	var levels = _new_arr_with_v(transitionTable.length, -1);
 
@@ -150,7 +151,39 @@ function Layout(TB, A) {
 
 	var graph = [];
 	var l = 0;
-	while (l<level) graph.push(_indexsOf(levels, l++));
+	while (l < level) graph.push(_indexsOf(levels, l++));
+
+
+	// 辅助数据结构，存储水平排序后每个节点的前后节点信息
+	var nodesInfo_H = new Map();
+	for (let node of _range(stems.length)) {
+		nodesInfo_H.set(node, {
+			leftNodes: [],
+			rightNodes: []
+		});
+	}
+	for (let R_node of _range(stems.length)) {
+		for (let L_node of stems[R_node]) {
+			nodesInfo_H.get(R_node).leftNodes.push(L_node);
+			nodesInfo_H.get(L_node).rightNodes.push(R_node);
+		}
+	}
+
+
+	// 为了处理单个正则表达式和多个正则表达式的差异，可能要判断如果有多个正则表达式，则在生成布局信息前先小技巧增加一个辅助节点在最后，让每个本来的接受状态都直接连接过去
+	// 然后理解为一个对多个正则表达式的巨大的并操作，这样就可以最大程度的降低考虑两种情况的差异带来的实现麻烦
+	// 
+
+	function x(){
+		// 匹配并操作的起点和终点
+		// 从左到右扫描数据结构 stems
+		//  遇到一个分点，
+	}
+
+
+	function countLines(){
+		let num = 0;
+	}
 
 	return graph;
 }

@@ -56,10 +56,10 @@ function test_data() {
 				acceptState2patternId: [
 					{
 						state: 4,
-						REId: 1
+						REId: 0
 					}, {
 						state: 16,
-						REId: 2
+						REId: 1
 					}
 				]
 			};
