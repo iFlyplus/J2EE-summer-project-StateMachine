@@ -9,7 +9,7 @@
             "name": "Run Layout.js",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/Layout.js",
+            "program": "${workspaceRoot}/dfaLayout.js",
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}",
